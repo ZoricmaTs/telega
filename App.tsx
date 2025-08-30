@@ -8,11 +8,12 @@
 import {Button, Platform, ScrollView, StyleSheet, Text, TextInput, View} from 'react-native';
 import {useCallback, useEffect, useState} from 'react';
 import TdLib, {TdLibParameters} from 'react-native-tdlib';
+import Config from "react-native-config";
 
 function App() {
   const parameters = {
-    api_id: Number(12345678), // Your API ID
-    api_hash: 'gdfgdf', // Your API Hash
+    api_id: Number(Config.API_ID), // Your API ID
+    api_hash: Config.API_HASH, // Your API Hash
   } as TdLibParameters;
 
   const [phone, setPhone] = useState('');
