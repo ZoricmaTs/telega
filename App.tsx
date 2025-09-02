@@ -5,10 +5,26 @@
  * @format
  */
 
-import {Button, Platform, ScrollView, StyleSheet, Text, TextInput, View} from 'react-native';
-import {useCallback, useEffect, useState} from 'react';
+import {StyleSheet} from 'react-native';
 import TdLib, {TdLibParameters} from 'react-native-tdlib';
 import Config from "react-native-config";
+import {Login} from './src/routes/login.tsx';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import {Home} from './src/routes/home.tsx';
+import {NavigationContainer} from '@react-navigation/native';
+import {SendCode} from './src/routes/sendCode.tsx';
+
+type RootStackParamList = {
+  Home: undefined,
+  Login: undefined,
+  SendCode: undefined,
+}
+
+declare global {
+  namespace ReactNavigation {
+    interface RootParamList extends RootStackParamList {}
+  }
+}
 
 function App() {
   const parameters = {
@@ -16,135 +32,15 @@ function App() {
     api_hash: Config.API_HASH, // Your API Hash
   } as TdLibParameters;
 
-  const [phone, setPhone] = useState('');
-  const [password, setPassword] = useState('');
-  const [otp, setOtp] = useState('');
-  const [countryCode, setCountryCode] = useState('');
-  const [profile, setProfile] = useState<any>(null);
-
-  useEffect(() => {
-    // Initializes TDLib with the provided parameters and checks the authorization state
-    console.log('useEffect:');
-    TdLib.startTdLib(parameters).then(r => {
-      console.log('StartTdLib:', r);
-      TdLib.getAuthorizationState().then(r => {
-        console.log('InitialAuthState:', r);
-        if (JSON.parse(r)['@type'] === 'authorizationStateReady') {
-          getProfile(); // Fetches the user's profile if authorization is ready
-        }
-      });
-    }).catch((err) => {
-      console.log('err', err)});
-  }, []);
-
-  // Sends a verification code to the provided phone number
-  const sendCode = useCallback(() => {
-    console.log('useCallback sendCode')
-    return TdLib.login({countrycode: countryCode, phoneNumber: phone}).then(r =>
-      console.log('SendCode:', r),
-    );
-  }, [countryCode, phone]);
-
-  // Verifies the phone number using the entered OTP code
-  const verifyPhoneNumber = useCallback(() => {
-    TdLib.verifyPhoneNumber(otp).then(r =>
-      console.log('VerifyPhoneNumber:', r),
-    );
-  }, [otp]);
-
-  // Verifies the password if required for login
-  const checkPassword = useCallback(() => {
-    TdLib.verifyPassword(password).then(r => console.log('CheckPassword:', r));
-  }, [password]);
-
-  // Fetches the profile of the logged-in user
-  const getProfile = useCallback(() => {
-    TdLib.getProfile().then(result => {
-      console.log('User Profile:', result);
-      const profile = Platform.select({
-        ios: result,
-        android: JSON.parse(result),
-      });
-      setProfile(profile);
-    });
-  }, []);
-
-  const checkAuthState = useCallback(() => {
-    TdLib.getAuthorizationState().then(r => console.log('AuthState:', r));
-  }, []);
-
+  const Stack = createNativeStackNavigator<RootStackParamList>();
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.contentContainer}>
-        <Text style={styles.title}>Auth</Text>
-        <Text>1. Login</Text>
-        <TextInput
-          value={countryCode}
-          onChangeText={setCountryCode}
-          placeholder={'+90'}
-          placeholderTextColor={'gray'}
-          style={[
-            styles.input,
-            {
-              marginBottom: 10,
-              marginTop: 14,
-            },
-          ]}
-        />
-        <TextInput
-          value={phone}
-          onChangeText={setPhone}
-          placeholder={'1234567890'}
-          placeholderTextColor={'gray'}
-          style={styles.input}
-        />
-        <Button title={'Send Code'} onPress={sendCode} />
-        <View style={styles.divider} />
-        <Text>2. OTP code</Text>
-        <TextInput
-          value={otp}
-          onChangeText={setOtp}
-          placeholder={'1234'}
-          placeholderTextColor={'gray'}
-          style={[
-            styles.input,
-            {
-              marginVertical: 14,
-            },
-          ]}
-        />
-        <Button title={'Login'} onPress={verifyPhoneNumber} />
-        <View style={styles.divider} />
-        <Text>3. Password (optional)</Text>
-        <TextInput
-          value={password}
-          onChangeText={setPassword}
-          placeholder={'123456'}
-          placeholderTextColor={'gray'}
-          style={[
-            styles.input,
-            {
-              marginVertical: 14,
-            },
-          ]}
-        />
-        <Button title={'Login'} onPress={checkPassword} />
-        <View style={styles.divider} />
-        {profile && (
-          <>
-            <Text>
-              Name: {profile.first_name || profile.firstName}{' '}
-              {profile.last_name || profile.lastName}
-            </Text>
-            <Text>
-              Phone Number: {profile.phone_number || profile.phoneNumber}
-            </Text>
-          </>
-        )}
-        <Button title={'Get Profile'} onPress={getProfile} />
-        <Button title={'Get Auth State'} onPress={checkAuthState} />
-      </View>
-    </ScrollView>
+    <NavigationContainer>
+      <Stack.Navigator initialRouteName="Home">
+        <Stack.Screen name="Home" component={Home} />
+        <Stack.Screen name="Login" component={Login} />
+        <Stack.Screen name="SendCode" component={SendCode} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
 
