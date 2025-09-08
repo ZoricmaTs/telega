@@ -17,7 +17,7 @@ import {SendCode} from './src/routes/sendCode.tsx';
 type RootStackParamList = {
   Home: undefined,
   Login: undefined,
-  SendCode: undefined,
+  SendCode: { countrycode: string; phoneNumber: string },
 }
 
 declare global {
