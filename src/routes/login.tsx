@@ -1,13 +1,13 @@
 import {Modal, Platform, StyleSheet, Text, View} from 'react-native';
 import {useCallback, useEffect, useState} from 'react';
 import TdLib, {TdLibParameters} from 'react-native-tdlib';
-import {Input, InputProps} from '../widgets/input';
-import {useNavigation} from '@react-navigation/core';
+import {Input} from '../widgets/input';
 import {Btn} from '../../widgets/Button.tsx';
 import Config from 'react-native-config';
+import {useUserStore} from '../stores/user.ts';
+import {useNavigation} from '@react-navigation/core';
 
 export function Login() {
-  const navigation = useNavigation();
   const params = {
     api_id: Number(Config.API_ID), // Your API ID
     api_hash: Config.API_HASH, // Your API Hash
@@ -21,18 +21,18 @@ export function Login() {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalPasswordVisible, setModalPasswordVisible] = useState(false);
 
-  const [profile, setProfile] = useState<any>(null);
+  const { user, setUser, clearUser } = useUserStore();
+  const navigation = useNavigation();
 
   useEffect(() => {
-    // Initializes TDLib with the provided parameters and checks the authorization state
-    console.log('useEffect:');
     TdLib.startTdLib(params).then(r => {
       console.log('StartTdLib:', r);
       TdLib.getAuthorizationState().then(r => {
         console.log('InitialAuthState:', r);
-        if (JSON.parse(r)['@type'] === 'authorizationStateReady') {
-          getProfile(); // Fetches the user's profile if authorization is ready
-        }
+
+        // if (JSON.parse(r)['@type'] === 'authorizationStateReady') {
+        //   getProfile(); // Fetches the user's profile if authorization is ready
+        // }
       });
     }).catch((err) => {
       console.log('err', err)});
@@ -50,30 +50,48 @@ export function Login() {
   const verifyPhoneNumber = useCallback(() => {
     TdLib.verifyPhoneNumber(otp).then(r => {
       setModalVisible(!modalVisible);
-      setModalPasswordVisible(true);
-        console.log('VerifyPhoneNumber:', r);
+      console.log('!!!modalVisible')
+      TdLib.getAuthorizationState().then((r) => {
+        console.log('!!!modalVisible getAuthorizationState', JSON.parse(r)['@type'])
+        if (JSON.parse(r)['@type'] === 'authorizationStateWaitPassword') {
+          console.log('QQQQQ')
+          setModalPasswordVisible(true);
+        } else {
+          if (JSON.parse(r)['@type'] === 'authorizationStateReady') {
+            getProfile();
+            navigation.navigate('Profile');
+          }
+        }
+      })
     });
   }, [otp]);
 
   const checkPassword = useCallback(() => {
     TdLib.verifyPassword(password).then(r => {
-      setModalPasswordVisible(!modalPasswordVisible)
+      setModalPasswordVisible(!modalPasswordVisible);
+      TdLib.getAuthorizationState().then(r => {
+        if (JSON.parse(r)['@type'] === 'authorizationStateReady') {
+          getProfile();
+          navigation.navigate('Profile');
+        }
+      });
     });
   }, [password]);
 
   const getProfile = useCallback(() => {
     TdLib.getProfile().then(result => {
-      console.log('User Profile:', result);
       const profile = Platform.select({
         ios: result,
         android: JSON.parse(result),
       });
-      setProfile(profile);
+
+      setUser(profile);
     });
   }, []);
 
   const checkAuthState = useCallback(() => {
-    TdLib.getAuthorizationState().then(r => console.log('AuthState:', r));
+    TdLib.getAuthorizationState().then(r => {
+    });
   }, []);
 
   return <View>
@@ -121,25 +139,25 @@ export function Login() {
       </View>
     </Modal>
 
-    {profile && (
-      <>
-        <Text>
-          Name: {profile.first_name || profile.firstName}{' '}
-          {profile.last_name || profile.lastName}
-        </Text>
-        <Text>
-          Phone Number: {profile.phone_number || profile.phoneNumber}
-        </Text>
-      </>
-    )}
+    {/*{user && (*/}
+    {/*  <>*/}
+    {/*    <Text>*/}
+    {/*      Name: {user.first_name || user.firstName}{' '}*/}
+    {/*      {user.last_name || user.lastName}*/}
+    {/*    </Text>*/}
+    {/*    <Text>*/}
+    {/*      Phone Number: {user.phone_number || user.phoneNumber}*/}
+    {/*    </Text>*/}
+    {/*  </>*/}
+    {/*)}*/}
 
-    <Btn action={getProfile}>
-      <Text style={{color: "#ffffff"}}>{'Get Profile'}</Text>
-    </Btn>
+    {/*<Btn action={getProfile}>*/}
+    {/*  <Text style={{color: "#ffffff"}}>{'Get Profile'}</Text>*/}
+    {/*</Btn>*/}
 
-    <Btn action={checkAuthState}>
-      <Text style={{color: "#ffffff"}}>{'Get Auth State'}</Text>
-    </Btn>
+    {/*<Btn action={checkAuthState}>*/}
+    {/*  <Text style={{color: "#ffffff"}}>{'Get Auth State'}</Text>*/}
+    {/*</Btn>*/}
 
   </View>
 }

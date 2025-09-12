@@ -12,12 +12,13 @@ import {Login} from './src/routes/login.tsx';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {Home} from './src/routes/home.tsx';
 import {NavigationContainer} from '@react-navigation/native';
-import {SendCode} from './src/routes/sendCode.tsx';
+import {Profile} from './src/routes/profile.tsx';
+import {useUserStore} from './src/stores/user.ts';
 
 type RootStackParamList = {
   Home: undefined,
   Login: undefined,
-  SendCode: { countrycode: string; phoneNumber: string },
+  Profile: undefined,
 }
 
 declare global {
@@ -31,19 +32,28 @@ function App() {
     api_id: Number(Config.API_ID), // Your API ID
     api_hash: Config.API_HASH, // Your API Hash
   } as TdLibParameters;
+  const { user, hydrated } = useUserStore();
+
+  if (!hydrated) {
+    // 👇 пока данные ещё грузятся — показываем сплэш / лоадер
+    return <SplashScreen />;
+  }
 
   const Stack = createNativeStackNavigator<RootStackParamList>();
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Home">
+      <Stack.Navigator initialRouteName={user === null ? "Home" : "Profile"}>
         <Stack.Screen name="Home" component={Home} />
         <Stack.Screen name="Login" component={Login} />
-        <Stack.Screen name="SendCode" component={SendCode} />
+        <Stack.Screen name="Profile" component={Profile} />
       </Stack.Navigator>
     </NavigationContainer>
   );
 }
 
+function SplashScreen() {
+  return <></>; // сюда можно загрузочный экран
+}
 
 const styles = StyleSheet.create({
   container: {
