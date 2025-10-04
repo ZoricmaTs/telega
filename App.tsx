@@ -5,7 +5,7 @@
  * @format
  */
 
-import {StyleSheet} from 'react-native';
+import {View} from 'react-native';
 import TdLib, {TdLibParameters} from 'react-native-tdlib';
 import Config from "react-native-config";
 import {Login} from './src/routes/login.tsx';
@@ -14,6 +14,7 @@ import {Home} from './src/routes/home.tsx';
 import {NavigationContainer} from '@react-navigation/native';
 import {Profile} from './src/routes/profile.tsx';
 import {useUserStore} from './src/stores/user.ts';
+import {useEffect, useState} from 'react';
 
 type RootStackParamList = {
   Home: undefined,
@@ -27,15 +28,24 @@ declare global {
   }
 }
 
-function App() {
-  const parameters = {
-    api_id: Number(Config.API_ID), // Your API ID
-    api_hash: Config.API_HASH, // Your API Hash
-  } as TdLibParameters;
-  const { user, hydrated } = useUserStore();
+const params = {
+  api_id: Number(Config.API_ID), // Your API ID
+  api_hash: Config.API_HASH, // Your API Hash
+} as TdLibParameters;
 
-  if (!hydrated) {
-    // 👇 пока данные ещё грузятся — показываем сплэш / лоадер
+function App() {
+  const { user, hydrated } = useUserStore();
+  const [isTdLibInited, setTdLibInited] = useState(false);
+
+  useEffect(() => {
+    TdLib.startTdLib(params).then(r => {
+      setTdLibInited(true);
+    }).catch((err) => {
+      console.log('TdLib initialization failed', err)
+    });
+  }, []);
+
+  if (!hydrated || !isTdLibInited) {
     return <SplashScreen />;
   }
 
@@ -52,26 +62,7 @@ function App() {
 }
 
 function SplashScreen() {
-  return <></>; // сюда можно загрузочный экран
+  return <View></View>;
 }
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: 'white',
-    flex: 1,
-  },
-  contentContainer: {
-    paddingTop: 20,
-    paddingHorizontal: 8,
-  },
-  title: {fontSize: 18, alignSelf: 'center', marginBottom: 10},
-  input: {padding: 6, borderRadius: 10, borderWidth: 1, height: 40},
-  divider: {
-    height: 1,
-    width: '100%',
-    backgroundColor: 'black',
-    marginVertical: 14,
-  },
-});
 
 export default App;

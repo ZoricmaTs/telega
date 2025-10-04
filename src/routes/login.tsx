@@ -8,11 +8,6 @@ import {useUserStore} from '../stores/user.ts';
 import {useNavigation} from '@react-navigation/core';
 
 export function Login() {
-  const params = {
-    api_id: Number(Config.API_ID), // Your API ID
-    api_hash: Config.API_HASH, // Your API Hash
-  } as TdLibParameters;
-
   const [countrycode, setCountrycode] = useState<string>('');
   const [phoneNumber, setPhoneNumber]  = useState<string>('');
   const [otp, setOtp] = useState('');
@@ -25,17 +20,9 @@ export function Login() {
   const navigation = useNavigation();
 
   useEffect(() => {
-    TdLib.startTdLib(params).then(r => {
-      console.log('StartTdLib:', r);
-      TdLib.getAuthorizationState().then(r => {
-        console.log('InitialAuthState:', r);
-
-        // if (JSON.parse(r)['@type'] === 'authorizationStateReady') {
-        //   getProfile(); // Fetches the user's profile if authorization is ready
-        // }
-      });
-    }).catch((err) => {
-      console.log('err', err)});
+    TdLib.getAuthorizationState().then(r => {
+      console.log('InitialAuthState:', r);
+    });
   }, []);
 
   const sendCode = useCallback(() => {
@@ -54,7 +41,6 @@ export function Login() {
       TdLib.getAuthorizationState().then((r) => {
         console.log('!!!modalVisible getAuthorizationState', JSON.parse(r)['@type'])
         if (JSON.parse(r)['@type'] === 'authorizationStateWaitPassword') {
-          console.log('QQQQQ')
           setModalPasswordVisible(true);
         } else {
           if (JSON.parse(r)['@type'] === 'authorizationStateReady') {
@@ -138,27 +124,6 @@ export function Login() {
         </View>
       </View>
     </Modal>
-
-    {/*{user && (*/}
-    {/*  <>*/}
-    {/*    <Text>*/}
-    {/*      Name: {user.first_name || user.firstName}{' '}*/}
-    {/*      {user.last_name || user.lastName}*/}
-    {/*    </Text>*/}
-    {/*    <Text>*/}
-    {/*      Phone Number: {user.phone_number || user.phoneNumber}*/}
-    {/*    </Text>*/}
-    {/*  </>*/}
-    {/*)}*/}
-
-    {/*<Btn action={getProfile}>*/}
-    {/*  <Text style={{color: "#ffffff"}}>{'Get Profile'}</Text>*/}
-    {/*</Btn>*/}
-
-    {/*<Btn action={checkAuthState}>*/}
-    {/*  <Text style={{color: "#ffffff"}}>{'Get Auth State'}</Text>*/}
-    {/*</Btn>*/}
-
   </View>
 }
 

@@ -15,10 +15,10 @@ export interface User {
 
 interface UserState {
   user: User | null;
-  setUser: (user: User) => void;
+  setUser: (user: User | null) => void;
   clearUser: () => void;
   hydrated: boolean;
-  setHydrated: (hydrated: boolean) => void
+  setHydrated: (hydrated: boolean) => void,
 }
 
 export const useUserStore = create<UserState>()(
