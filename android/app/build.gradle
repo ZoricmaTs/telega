@@ -112,6 +112,7 @@ dependencies {
     implementation("com.facebook.react:react-android")
     implementation project(':react-native-tdlib')
 
+    implementation("com.google.android.gms:play-services-wearable:18.2.0")
 //    implementation project(':react-native-config')  //
 
     if (hermesEnabled.toBoolean()) {

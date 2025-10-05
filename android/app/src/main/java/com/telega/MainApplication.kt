@@ -1,5 +1,6 @@
 package com.telega
 
+import com.telega.WearBridgePackage;
 import android.app.Application
 import com.facebook.react.PackageList
 import com.facebook.react.ReactApplication
@@ -19,6 +20,7 @@ class MainApplication : Application(), ReactApplication {
         override fun getPackages(): List<ReactPackage> =
             PackageList(this).packages.apply {
               add(TdLibPackage())
+              add(WearBridgePackage())
 
 //              add(RNCConfigPackage())  //react-native-config
 
